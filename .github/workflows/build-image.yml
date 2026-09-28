@@ -72,12 +72,11 @@ jobs:
 
       - name: Aplicar e enviar tags adicionais via podman
         run: |
-          VERSION="${{ steps.meta.outputs.version }}"
           SHORT_SHA="${{ steps.meta.outputs.short_sha }}"
           BASE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
           PRIMARY="${{ steps.meta.outputs.primary }}"
 
-          for TAG in "${VERSION}-latest" "latest" "main" "sha-${SHORT_SHA}"; do
+          for TAG in "latest" "main" "sha-${SHORT_SHA}"; do
             echo "→ Taguando e enviando :${TAG}"
             sudo podman tag "${PRIMARY}" "${BASE}:${TAG}"
             sudo podman push "${BASE}:${TAG}"
