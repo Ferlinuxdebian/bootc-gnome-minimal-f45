@@ -70,18 +70,15 @@ jobs:
       - name: Push da tag principal otimizada
         run: sudo podman push "${{ steps.meta.outputs.primary }}"
 
-      - name: Aplicar tags adicionais via skopeo
+      - name: Aplicar e enviar tags adicionais via podman
         run: |
           VERSION="${{ steps.meta.outputs.version }}"
           SHORT_SHA="${{ steps.meta.outputs.short_sha }}"
           BASE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
-          CREDS="${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}"
+          PRIMARY="${{ steps.meta.outputs.primary }}"
 
           for TAG in "${VERSION}-latest" "latest" "main" "sha-${SHORT_SHA}"; do
-            echo "→ Copiando manifesto para :${TAG}"
-            sudo skopeo copy \
-              --src-creds  "${CREDS}" \
-              --dest-creds "${CREDS}" \
-              "docker://${{ steps.meta.outputs.primary }}" \
-              "docker://${BASE}:${TAG}"
+            echo "→ Taguando e enviando :${TAG}"
+            sudo podman tag "${PRIMARY}" "${BASE}:${TAG}"
+            sudo podman push "${BASE}:${TAG}"
           done
