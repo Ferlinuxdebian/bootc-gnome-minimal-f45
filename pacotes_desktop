@@ -1,0 +1,15 @@
+# Pacotes de ambiente de desktop
+gnome-keyring
+glycin-thumbnailer
+gnome-epub-thumbnailer
+papers-thumbnailer
+libnma
+ibus-typing-booster
+ibus-gtk4
+nautilus
+ptyxis
+
+# Nessários para sons do gnome shell ex: (Som screenshot, bip terminal) a partir do F45
+libcanberra-backend-pulse
+libcanberra-backend-gstreamer
+libcanberra-backend-alsa
