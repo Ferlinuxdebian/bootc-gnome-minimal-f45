@@ -33,7 +33,7 @@ RUN dnf5 install gnome-shell --setopt=tsflags=nodocs --setopt=install_weak_deps=
     dnf5 clean all && \
     rm -rfv /var/lib/dnf/* /var/log/* /tmp/* /var/tmp/*
 
-# 3. Instalação de pacotes adicionais, bem como o Ghostty terminal e plugins do DNF5
+# 3. Instalação de pacotes adicionais, bem como o Ghostty terminal e plugins do DNF
 COPY pacotes_necessarios pacotes_desktop ./
 RUN dnf5 install dnf5-plugins -y && \
     dnf5 copr enable scottames/ghostty -y && \
