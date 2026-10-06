@@ -62,7 +62,7 @@ jobs:
         run: |
           sudo podman run --rm --privileged \
             -v /var/lib/containers:/var/lib/containers \
-            quay.io/fedora/fedora-bootc:44 \
+            quay.io/fedora/fedora-bootc:45 \
             /usr/libexec/bootc-base-imagectl rechunk \
             localhost/bootc-raw:latest \
             "${{ steps.meta.outputs.primary }}"
