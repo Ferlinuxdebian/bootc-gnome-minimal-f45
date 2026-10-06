@@ -58,7 +58,7 @@ jobs:
             -v "$(pwd):/run/src" \
             .
 
-      - name: Rechunk via bootc-base-imagectl (fedora-bootc:44)
+      - name: Rechunk via bootc-base-imagectl (fedora-bootc:45)
         run: |
           sudo podman run --rm --privileged \
             -v /var/lib/containers:/var/lib/containers \
