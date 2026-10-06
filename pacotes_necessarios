@@ -22,6 +22,7 @@ sysfsutils
 gvfs-smb
 libdnf5-plugin-appstream
 dnf5-plugins
+pciutils
 kmscon
 
 # Pacotes não essenciais (pode ser alterado a gosto)
