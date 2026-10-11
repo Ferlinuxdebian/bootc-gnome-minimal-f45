@@ -1,6 +1,6 @@
 kargs = [
   "rd.driver.blacklist=nouveau,nova_core",
   "modprobe.blacklist=nouveau,nova_core",
-  "vconsole.keymap=br"
-  "rootflags=compress=zstd:1"
+  "vconsole.keymap=br",
+  "rootflags=compress=zstd:1",
 ]
