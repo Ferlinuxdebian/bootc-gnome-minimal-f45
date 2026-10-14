@@ -38,7 +38,7 @@ COPY pacotes_necessarios pacotes_desktop ./
 RUN grep -v '^#' pacotes_necessarios | tr '\n' ' ' | xargs dnf5 install --setopt=tsflags=nodocs -y && \
     grep -v '^#' pacotes_desktop | tr '\n' ' ' | xargs dnf5 install --setopt=tsflags=nodocs -y && \
     dnf5 clean all && \
-    rm -rfv /var/lib/dnf/* /var/log/* /tmp/* /var/tmp/*
+    rm -rfv /var/lib/dnf/* /var/log/* /tmp/* /var/tmp/* pacotes_necessarios pacotes_desktop
 
 # 4. Configurações, scripts, links do sistema e tratamento de /opt e /usr/local
 COPY locale.conf post-install.sh post-install.service zram-generator.conf vconsole.conf /tmp/sysconfig/
