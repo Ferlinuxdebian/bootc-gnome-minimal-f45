@@ -10,6 +10,7 @@ ConditionPathExists=/home/fernando
 [Service]
 Type=oneshot
 User=fernando
+TimeoutStartSec=30s
 ExecStartPre=/usr/bin/bash -c 'until curl -fs --max-time 10 -o /dev/null https://dl.flathub.org/repo/summary; do sleep 3; done'
 ExecStartPre=-+/usr/bin/env HOME=/root /usr/bin/flatpak remote-delete --system --force fedora
 ExecStartPre=/usr/bin/flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
