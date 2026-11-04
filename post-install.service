@@ -10,7 +10,7 @@ ConditionPathExists=/home/fernando
 [Service]
 Type=oneshot
 User=fernando
-ExecStartPre=-+/usr/bin/flatpak remote-delete --system --force fedora
+ExecStartPre=-+/usr/bin/env HOME=/root /usr/bin/flatpak remote-delete --system --force fedora
 ExecStartPre=/usr/bin/flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 ExecStart=/usr/bin/flatpak preinstall --user -y --noninteractive
 Restart=on-failure
