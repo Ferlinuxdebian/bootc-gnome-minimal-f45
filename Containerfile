@@ -51,7 +51,6 @@ RUN mkdir -vp /var/opt /var/usrlocal /etc/sysusers.d /usr/lib/bootc/kargs.d /etc
     mv -v /tmp/sysconfig/locale.conf /etc/locale.conf && \
     mv -v /tmp/sysconfig/flatpaks.preinstall /usr/share/flatpak/preinstall.d/flatpaks.preinstall && \
     mv -v /tmp/sysconfig/post-install.service /usr/lib/systemd/system/post-install.service && \
-    chmod +x /usr/bin/post-install.sh && \
     systemctl enable post-install.service spice-vdagentd.service && \
     systemctl mask systemd-remount-fs.service akmods-keygen@akmods-keygen.service && \
     systemctl mask NetworkManager-wait-online.service && \
