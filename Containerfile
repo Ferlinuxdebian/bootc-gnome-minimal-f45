@@ -41,7 +41,7 @@ RUN grep -v '^#' pacotes_necessarios | tr '\n' ' ' | xargs dnf5 install --setopt
     rm -rfv /var/lib/dnf/* /var/log/* /tmp/* /var/tmp/* pacotes_necessarios pacotes_desktop
 
 # 4. Configurações, scripts, links do sistema e tratamento de /opt e /usr/local
-COPY locale.conf post-install.sh post-install.service zram-generator.conf vconsole.conf /tmp/sysconfig/
+COPY locale.conf flatpaks.preinstall post-install.service zram-generator.conf vconsole.conf /tmp/sysconfig/
 RUN mkdir -vp /var/opt /var/usrlocal /etc/sysusers.d /usr/lib/bootc/kargs.d /etc/modprobe.d && \
     rm -rfv /opt /usr/local && \
     ln -vrs /var/opt /opt && \
@@ -49,7 +49,7 @@ RUN mkdir -vp /var/opt /var/usrlocal /etc/sysusers.d /usr/lib/bootc/kargs.d /etc
     mv -v /tmp/sysconfig/zram-generator.conf /etc/systemd/ && \
     mv -v /tmp/sysconfig/vconsole.conf /etc/vconsole.conf && \
     mv -v /tmp/sysconfig/locale.conf /etc/locale.conf && \
-    mv -v /tmp/sysconfig/post-install.sh /usr/bin/post-install.sh && \
+    mv -v /tmp/sysconfig/flatpaks.preinstall /usr/share/flatpak/preinstall.d/flatpaks.preinstall && \
     mv -v /tmp/sysconfig/post-install.service /usr/lib/systemd/system/post-install.service && \
     chmod +x /usr/bin/post-install.sh && \
     systemctl enable post-install.service spice-vdagentd.service && \

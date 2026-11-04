@@ -1,14 +1,18 @@
 # /etc/systemd/system/post-install.service
-# Instala vários apps Flatpaks
+# Instala os Flatpaks listados em /usr/share/flatpak/preinstall.d/ na instalação do usuário
 
 [Unit]
-Description=Bootstrap de Flatpaks iniciais
+Description=Instalação de Flatpaks iniciais (flatpak preinstall)
 After=network-online.target
 Wants=network-online.target
+ConditionPathExists=/home/fernando
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/post-install.sh
+User=fernando
+ExecStartPre=-+/usr/bin/flatpak remote-delete --system --force fedora
+ExecStartPre=/usr/bin/flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+ExecStart=/usr/bin/flatpak preinstall --user -y --noninteractive
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=graphical.target
