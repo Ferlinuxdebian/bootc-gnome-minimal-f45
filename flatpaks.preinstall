@@ -6,9 +6,6 @@ Branch=stable
 [Flatpak Preinstall ca.desrt.dconf-editor]
 Branch=stable
 
-[Flatpak Preinstall com.borgbase.Vorta]
-Branch=stable
-
 [Flatpak Preinstall com.brave.Browser]
 Branch=stable
 
