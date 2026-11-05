@@ -1,4 +1,4 @@
-name: Build e Push da Imagem Bootc
+name: Build, Push e Assinatura da Imagem Bootc
 on:
   schedule:
     - cron: '32 4 * * *'
@@ -7,6 +7,8 @@ on:
       - main
     paths-ignore:
       - 'README.md'
+      - 'docs/**'
+      - 'security/README.md'
   workflow_dispatch:
 
 env:
@@ -15,7 +17,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  build-and-push:
+  build-sign-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -38,12 +40,12 @@ jobs:
           SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           PRIMARY="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${VERSION}-${DATE}"
 
-          echo "version=${VERSION}"     >> $GITHUB_OUTPUT
-          echo "date=${DATE}"            >> $GITHUB_OUTPUT
-          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
-          echo "primary=${PRIMARY}"     >> $GITHUB_OUTPUT
+          echo "version=${VERSION}"     >> "$GITHUB_OUTPUT"
+          echo "date=${DATE}"           >> "$GITHUB_OUTPUT"
+          echo "short_sha=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "primary=${PRIMARY}"     >> "$GITHUB_OUTPUT"
 
-      - name: Login no GHCR
+      - name: Login no GHCR (podman)
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | sudo podman login \
             -u "${{ github.actor }}" --password-stdin "${{ env.REGISTRY }}"
@@ -67,10 +69,41 @@ jobs:
             localhost/bootc-raw:latest \
             "${{ steps.meta.outputs.primary }}"
 
-      - name: Push da tag principal otimizada
-        run: sudo podman push "${{ steps.meta.outputs.primary }}"
+      - name: Push da tag principal e captura do digest
+        run: |
+          sudo podman push --digestfile /tmp/image-digest \
+            "${{ steps.meta.outputs.primary }}"
+          DIGEST=$(sudo cat /tmp/image-digest)
+          echo "Imagem publicada: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${DIGEST}"
+          echo "DIGEST=${DIGEST}" >> "$GITHUB_ENV"
 
-      - name: Aplicar e enviar tags adicionais via podman
+      - name: Instalar cosign
+        # Fixado por SHA: esta Action manipula a chave privada de assinatura.
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+        with:
+          # v2.x grava a assinatura no formato de anexo ".sig", que é o formato
+          # que o bootc/containers-image descobre via use-sigstore-attachments.
+          cosign-release: 'v2.4.3'
+
+      - name: Login no GHCR (cosign)
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | cosign login "${{ env.REGISTRY }}" \
+            -u "${{ github.actor }}" --password-stdin
+
+      - name: Assinar a imagem pelo digest
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          cosign sign --yes --key env://COSIGN_PRIVATE_KEY \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${DIGEST}"
+
+      - name: Verificar a assinatura (gate de CI)
+        run: |
+          cosign verify --key security/cosign.pub \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${DIGEST}"
+
+      - name: Aplicar e enviar tags adicionais
         run: |
           SHORT_SHA="${{ steps.meta.outputs.short_sha }}"
           BASE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"

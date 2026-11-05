@@ -1,0 +1,40 @@
+{
+  "default": [
+    {
+      "type": "reject"
+    }
+  ],
+  "transports": {
+    "docker": {
+      "ghcr.io/ferlinuxdebian/bootc-gnome-minimal-f45": [
+        {
+          "type": "sigstoreSigned",
+          "keyPath": "/etc/pki/containers/bootc-gnome.pub",
+          "signedIdentity": {
+            "type": "matchRepository"
+          }
+        }
+      ],
+      "docker.io": [
+        {
+          "type": "insecureAcceptAnything"
+        }
+      ],
+      "registry.fedoraproject.org": [
+        {
+          "type": "insecureAcceptAnything"
+        }
+      ],
+      "quay.io": [
+        {
+          "type": "insecureAcceptAnything"
+        }
+      ],
+      "ghcr.io": [
+        {
+          "type": "insecureAcceptAnything"
+        }
+      ]
+    }
+  }
+}

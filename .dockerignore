@@ -1,0 +1,15 @@
+# Fora do contexto de build: documentação, git e chaves privadas
+.git
+.github
+docs
+README.md
+security/README.md
+
+# Nunca enviar chaves privadas para o builder
+*.key
+cosign.key
+security/cosign.key
+
+# Artefatos locais
+output
+config.toml

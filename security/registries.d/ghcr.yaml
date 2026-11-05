@@ -1,0 +1,3 @@
+docker:
+  ghcr.io/ferlinuxdebian/bootc-gnome-minimal-f45:
+    use-sigstore-attachments: true

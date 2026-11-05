@@ -1,0 +1,10 @@
+# Chaves privadas e artefatos locais
+cosign.key
+*.key
+*.pem
+
+# Saída de builds/ISO
+output/
+
+# Kickstart local (pode conter senhas)
+config.toml
