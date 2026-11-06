@@ -46,13 +46,10 @@ Além do `bootc`, a imagem utiliza o [chunkah](https://github.com/coreos/chunkah
 | `security/cosign.pub` | Chave pública usada para verificar a assinatura da imagem |
 | `security/keys/RPM-GPG-KEY-slaanesh` | Chave pública do repositório negativo17 |
 | `docs/SIGNING.md` | Guia de assinatura e verificação |
-| `config.toml` | Arquivo de kickstart do Anaconda para geração de ISO (local, não versionado) |
 
 ## Ciclo de Atualização
 
-A imagem é reconstruída automaticamente todos os dias às 03h45. Uma notificação via Telegram (integração com o BotFather) é enviada ao final de cada build, indicando sucesso ou falha.
-
-![Notificação Telegram](https://i.imgur.com/5Ip7A1N.png)
+A imagem é reconstruída automaticamente todos os dias às 03h45 (horário de Brasília).
 
 ### Atualização manual
 
@@ -89,42 +86,20 @@ A imagem é assinada com cosign no GitHub Actions e o sistema instalado verifica
 a assinatura antes de aplicar atualizações. As chaves e políticas ficam em
 `security/` e o passo a passo está em [`docs/SIGNING.md`](docs/SIGNING.md).
 
-## Criação de ISO Personalizada
+## Criação de ISO de instalação
 
-### Build da imagem local
-
-```bash
-# baixar os arquivos do projeto
-git clone https://github.com/Ferlinuxdebian/bootc-gnome-minimal-f45.git
-cd bootc-gnome-minimal-f45
-mkdir output
-
-# build do projeto com o buildah
-sudo buildah build \
-    --skip-unused-stages=false \
-    --security-opt=label=disable \
-    -t "bootc-gnome-minimal" \
-    -f Containerfile \
-    -v $(pwd):/run/src \
-    .
-```
-
-### Geração da ISO de instalação
+A ISO de instalação é gerada pelo repositório
+[anaconda-webui-bootc-installer](https://github.com/Ferlinuxdebian/anaconda-webui-bootc-installer),
+que usa o Anaconda WebUI para instalar esta imagem em disco via `bootc`.
 
 ```bash
-sudo podman run \
-    --rm \
-    -it \
-    --privileged \
-    --pull=newer \
-    --security-opt label=type:unconfined_t \
-    -v ./output:/output \
-    -v ./config.toml:/config.toml:ro \
-    -v /var/lib/containers/storage:/var/lib/containers/storage \
-    quay.io/centos-bootc/bootc-image-builder:latest \
-    --type anaconda-iso \
-    --rootfs btrfs \
-    localhost/bootc-gnome-minimal
+git clone https://github.com/Ferlinuxdebian/anaconda-webui-bootc-installer.git
+cd anaconda-webui-bootc-installer
+
+# Gera a ISO a partir da imagem assinada publicada no GHCR
+sudo just build ghcr.io/ferlinuxdebian/bootc-gnome-minimal-f45:latest
+sudo just create-iso
 ```
 
-Após a conclusão, o arquivo `output/bootiso/install.iso` estará disponível para uso na instalação do sistema.
+A ISO é criada em `bootc-generic-iso/`. Para instalar a variante sem
+assinatura ou ver outras opções, consulte o README daquele repositório.

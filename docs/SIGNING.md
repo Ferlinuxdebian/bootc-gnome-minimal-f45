@@ -86,7 +86,44 @@ explícita é recusado. Hoje estão liberados (sem verificação de assinatura)
 `docker.io`, `registry.fedoraproject.org`, `quay.io` e `ghcr.io` para não
 quebrar `podman`/`toolbox`/`distrobox`. Ajuste a lista conforme o seu uso.
 
-## 5. Primeira migração para a imagem assinada
+## 5. Verificar a imagem que está rodando
+
+O `bootc status` mostra o digest da imagem em execução, mas o formato do texto
+muda entre versões. Para não depender do rótulo, extraia o primeiro `sha256:`
+da saída e verifique **pelo digest** (nunca pela tag, que pode ser movida):
+
+```bash
+IMG=ghcr.io/ferlinuxdebian/bootc-gnome-minimal-f45
+DIG=$(sudo bootc status | grep -oE 'sha256:[0-9a-f]{64}' | head -1)
+
+echo "DIG=[$DIG]"
+[ -n "$DIG" ] || { echo "não consegui extrair o digest"; exit 1; }
+
+cosign verify --key ~/cosign.pub "$IMG@$DIG" \
+  && echo "OK: assinatura válida para $DIG"
+```
+
+O `DIG` precisa ser igual ao digest mostrado em `bootc status`, e o JSON da
+verificação deve trazer `"docker-manifest-digest"` com esse mesmo valor.
+
+Confira também que a chave embutida no sistema é a mesma do repositório:
+
+```bash
+sha256sum /etc/pki/containers/bootc-gnome.pub ~/cosign.pub
+```
+
+E que a policy ativa aponta para ela:
+
+```bash
+jq '.default, .transports.docker["ghcr.io/ferlinuxdebian/bootc-gnome-minimal-f45"]' \
+  /etc/containers/policy.json
+```
+
+> O prefixo `ostree-unverified-registry:` que aparece no `rpm-ostree status`
+> é só o nome do transporte OCI. O bootc **sempre** aplica a policy de
+> containers; a prova é o teste negativo recusar um digest sem assinatura.
+
+## 6. Primeira migração para a imagem assinada
 
 A policy vale a partir do sistema **que está rodando**. Uma máquina que ainda
 está na imagem antiga não tem a policy nova, então valide a assinatura na mão
@@ -126,7 +163,7 @@ sudo bootc switch --enforce-container-sigpolicy \
   ghcr.io/usuario/qualquer-imagem-sem-assinatura:latest
 ```
 
-## 6. Chave GPG do repositório negativo17
+## 7. Chave GPG do repositório negativo17
 
 A chave pública fica versionada em `security/keys/RPM-GPG-KEY-slaanesh` e o
 `Containerfile`:
@@ -148,7 +185,7 @@ A lista de pacotes NVIDIA instalados na imagem final fica em
 se quiser dependências checadas, instale essa lista antes e remova o
 `--nodeps` — o `rpm` não baixa nada, apenas valida o que já está presente.
 
-## 7. Checklist rápido
+## 8. Checklist rápido
 
 - [ ] `security/cosign.pub` commitado (e é o par de `~/cosign.key`).
 - [ ] Secrets `COSIGN_PRIVATE_KEY` e `COSIGN_PASSWORD` criados.
@@ -156,5 +193,7 @@ se quiser dependências checadas, instale essa lista antes e remova o
 - [ ] Build com as etapas `Assinar a imagem pelo digest` e
       `Verificar a assinatura (gate de CI)` verdes.
 - [ ] `cosign verify --key security/cosign.pub ...:latest` retorna `Verified OK`.
+- [ ] `cosign verify` pelo digest mostrado no `bootc status` retorna `Verified OK`.
 - [ ] Primeiro `bootc switch` feito e máquina reiniciada na imagem assinada.
+- [ ] Teste negativo recusado com `A signature was required, but no signature exists`.
 - [ ] Backup de `~/cosign.key` e da senha guardado fora do repositório.
