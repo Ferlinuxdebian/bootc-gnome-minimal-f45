@@ -2,7 +2,7 @@
 
 Este repositório contém a definição da imagem de sistema operacional baseada em **Fedora 45**, construída com `bootc`. O sistema é imutável, voltado para uso desktop com suporte a drivers Nvidia e interface GNOME.
 
-Além do `bootc`, a imagem utiliza o [chunkah](https://github.com/coreos/chunkah) para otimizar o processo de atualização, dividindo a imagem em camadas adicionais e reduzindo o volume de dados transferidos a cada update do bootc.
+Além do `bootc`, a imagem utiliza o `bootc-base-imagectl` na etapa de rechunk do build para otimizar o processo de atualização, dividindo a imagem em camadas adicionais e reduzindo o volume de dados transferidos a cada update do bootc.
 
 ## Arquitetura do Projeto
 
@@ -101,5 +101,4 @@ sudo just build ghcr.io/ferlinuxdebian/bootc-gnome-minimal-f45:latest
 sudo just create-iso
 ```
 
-A ISO é criada em `bootc-generic-iso/`. Para instalar a variante sem
-assinatura ou ver outras opções, consulte o README daquele repositório.
+Ao término, a ISO estará disponível no diretório atual.
