@@ -5,12 +5,14 @@ FROM quay.io/fedora/fedora-bootc:45 AS builder
 # Fingerprint: 0C5D 0F47 0484 AE2F C40A 9B65 97F3 0089 93E8 909B
 COPY security/keys/RPM-GPG-KEY-slaanesh /tmp/RPM-GPG-KEY-slaanesh
 
-RUN dnf5 -y upgrade kernel* --refresh && \
+RUN dnf5 -y upgrade 'kernel*' --refresh && \
     KERNEL_VERSION="$(rpm -q kernel-core --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}')" && \
-    dnf5 -y install "kernel-devel-${KERNEL_VERSION}" wget && \
+    dnf5 -y install "kernel-devel-${KERNEL_VERSION}" && \
     echo "cd037a2d00bd3126e808d53921e28ca7bafabc1834abd675d4ad4b5b4d850f49  /tmp/RPM-GPG-KEY-slaanesh" | sha256sum -c - && \
     rpm --import /tmp/RPM-GPG-KEY-slaanesh && \
-    wget -O /etc/yum.repos.d/fedora-nvidia-580.repo https://negativo17.org/repos/fedora-nvidia-580.repo && \
+    curl --fail --silent --show-error --location --retry 3 \
+      --output /etc/yum.repos.d/fedora-nvidia-580.repo \
+      https://negativo17.org/repos/fedora-nvidia-580.repo && \
     dnf5 install -y nvidia-driver nvidia-driver-cuda && \
     akmods --force --kernels "$KERNEL_VERSION"
 
@@ -32,9 +34,14 @@ COPY config/nvidia/nvidia_packages \
 # rpmkeys sai com 0 também para pacote não assinado, por isso cada pacote é
 # conferido individualmente. Mantido o rpm -vi --nodeps para NÃO puxar
 # dependências de compilação para a imagem final (sem --nosignature).
+# Só o kernel é atualizado aqui: o restante da base já é entregue pela tag
+# fedora-bootc:45 (reconstruída diariamente) e um "dnf upgrade" completo
+# criaria uma camada grande e volátil, que o bootc upgrade teria de baixar
+# de novo a cada atualização. Atualizar o kernel mantém o módulo akmods
+# alinhado ao kernel usado no estágio builder.
 RUN mv /run/build-inputs/fedora-nvidia-580.repo /etc/yum.repos.d/ && \
     rpm --import /run/build-inputs/RPM-GPG-KEY-slaanesh && \
-    dnf5 -y upgrade --refresh && \
+    dnf5 -y upgrade --refresh 'kernel*' && \
     kver="$(rpm -q kernel-core --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}')" && \
     dnf5 -y install --setopt=tsflags=nodocs "kernel-modules-extra-${kver}" && \
     dnf5 download --destdir=/run/build-inputs nvidia-kmod-common nvidia-driver-cuda && \

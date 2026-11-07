@@ -4,6 +4,8 @@ Este repositório contém a definição da imagem de sistema operacional baseada
 
 Além do `bootc`, a imagem utiliza o `bootc-base-imagectl` na etapa de rechunk do build para otimizar o processo de atualização, dividindo a imagem em camadas adicionais e reduzindo o volume de dados transferidos a cada update do bootc.
 
+Para preservar esse reaproveitamento, o `Containerfile` evita `dnf upgrade` completo na imagem final: as atualizações de pacotes vêm da tag flutuante `fedora-bootc:45` e apenas o kernel é atualizado, para manter o módulo akmods da NVIDIA alinhado ao kernel do estágio de build.
+
 ## Arquitetura do Projeto
 
 - **Base:** [fedora-bootc](https://quay.io/repository/fedora/fedora-bootc) (Imagem OCI inicializável Oficial do projeto Fedora)
