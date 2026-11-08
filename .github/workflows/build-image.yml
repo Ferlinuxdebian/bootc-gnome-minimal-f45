@@ -103,14 +103,43 @@ jobs:
           cosign verify --key security/cosign.pub \
             "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${DIGEST}"
 
+      - name: Instalar skopeo
+        run: |
+          if ! command -v skopeo >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y skopeo
+          fi
+          skopeo --version
+
       - name: Aplicar e enviar tags adicionais
         run: |
           SHORT_SHA="${{ steps.meta.outputs.short_sha }}"
           BASE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
-          PRIMARY="${{ steps.meta.outputs.primary }}"
+          DIGEST="${DIGEST}"
 
+          # Copia o manifesto ASSINADO para as tags móveis usando skopeo,
+          # que sobrescreve a tag de destino de forma confiável (o podman push
+          # de uma tag já existente nem sempre atualiza o digest no GHCR).
           for TAG in "latest" "main" "sha-${SHORT_SHA}"; do
-            echo "→ Taguando e enviando :${TAG}"
-            sudo podman tag "${PRIMARY}" "${BASE}:${TAG}"
-            sudo podman push "${BASE}:${TAG}"
+            echo "→ Copiando manifesto assinado para :${TAG}"
+            sudo skopeo copy \
+              --src-creds  "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+              --dest-creds "${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}" \
+              "docker://${BASE}@${DIGEST}" \
+              "docker://${BASE}:${TAG}"
           done
+
+      - name: Verificar que latest aponta para o digest assinado
+        run: |
+          DIGEST="${DIGEST}"
+          LATEST_DIGEST=$(sudo skopeo inspect --format '{{.Digest}}' \
+            "docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest")
+          echo "assinado: ${DIGEST}"
+          echo "latest:   ${LATEST_DIGEST}"
+          [ "${DIGEST}" = "${LATEST_DIGEST}" ] || \
+            { echo "ERRO: latest não aponta para o digest assinado"; exit 1; }
+
+      - name: Verificar assinatura da tag latest
+        run: |
+          cosign verify --key security/cosign.pub \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
