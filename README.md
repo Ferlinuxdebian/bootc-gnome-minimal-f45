@@ -26,6 +26,12 @@ Para preservar esse reaproveitamento, o `Containerfile` evita `dnf upgrade` comp
 │   └── flatpak/                  # Flatpaks pré-instalados
 ├── security/                     # chaves e política de assinatura
 ├── docs/                         # documentação
+│   ├── SIGNING.md
+│   ├── instalacao-manual-bootc-to-filesystem.md
+│   ├── instalador-anaconda-gtk.md
+│   ├── instalador-anaconda-webui.md
+│   ├── ostree-comandos.md
+│   └── rpm-ostree.md
 └── .github/workflows/            # build automático
 ```
 
@@ -47,7 +53,26 @@ Para preservar esse reaproveitamento, o `Containerfile` evita `dnf upgrade` comp
 | `security/registries.d/ghcr.yaml` | Descoberta das assinaturas cosign no GHCR |
 | `security/cosign.pub` | Chave pública usada para verificar a assinatura da imagem |
 | `security/keys/RPM-GPG-KEY-slaanesh` | Chave pública do repositório negativo17 |
-| `docs/SIGNING.md` | Guia de assinatura e verificação |
+| `docs/` | Guias de instalação, assinatura, OSTree e rpm-ostree (veja a seção [Documentação](#documentação)) |
+
+## Documentação
+
+Os guias detalhados ficam em [`docs/`](docs/). Eles complementam este README
+com instruções passo a passo, explicações e solução de problemas.
+
+| Documento | Conteúdo |
+| --- | --- |
+| [`docs/SIGNING.md`](docs/SIGNING.md) | Assinatura da imagem com cosign, configuração dos secrets no GitHub Actions, verificação no sistema instalado e troca de chave no futuro. |
+| [`docs/instalacao-manual-bootc-to-filesystem.md`](docs/instalacao-manual-bootc-to-filesystem.md) | Instalação manual em disco com BTRFS, subvolumes `root`/`home`, `bootc install to-filesystem`, ajuste de `fstab` e primeiro boot. |
+| [`docs/instalador-anaconda-webui.md`](docs/instalador-anaconda-webui.md) | Como gerar uma ISO live com o instalador Anaconda WebUI (Cockpit/Wayland) usando `image-builder` e `bootc-generic-iso`. |
+| [`docs/instalador-anaconda-gtk.md`](docs/instalador-anaconda-gtk.md) | Como gerar uma ISO live com o instalador Anaconda GTK (legado), incluindo o `Containerfile` comentado e o build da ISO. |
+| [`docs/ostree-comandos.md`](docs/ostree-comandos.md) | Referência de comandos `ostree admin`: implantações, pin, limpeza, unlock e comparação com os comandos `bootc`. |
+| [`docs/rpm-ostree.md`](docs/rpm-ostree.md) | Referência de `rpm-ostree`: reset, overrides, kargs, apply-live, rebase, pin e por que evitar camadas locais em sistemas bootc. |
+
+> [!TIP]
+> Se você quer apenas instalar o sistema com o menor esforço, comece pela ISO
+> (seção [Criação de ISO de instalação](#criação-de-iso-de-instalação)). O guia
+> de instalação manual é para layouts de disco personalizados ou automação.
 
 ## Ciclo de Atualização
 
@@ -68,6 +93,10 @@ rpm-ostree db diff
 # Reiniciar para ativar a nova imagem
 sudo reboot
 ```
+
+Para comandos avançados de inspeção, rollback e limpeza de implantações, veja
+[`docs/ostree-comandos.md`](docs/ostree-comandos.md) e
+[`docs/rpm-ostree.md`](docs/rpm-ostree.md).
 
 ## Comandos de Manutenção
 
@@ -104,3 +133,14 @@ sudo just create-iso
 ```
 
 Ao término, a ISO estará disponível no diretório atual.
+
+Se preferir gerar a ISO manualmente com o `image-builder`, os guias completos
+estão em:
+
+- [`docs/instalador-anaconda-webui.md`](docs/instalador-anaconda-webui.md) —
+  instalador novo, baseado em Cockpit/Wayland (recomendado).
+- [`docs/instalador-anaconda-gtk.md`](docs/instalador-anaconda-gtk.md) —
+  instalador GTK legado.
+
+Para instalar sem ISO, com um layout de disco personalizado, use
+[`docs/instalacao-manual-bootc-to-filesystem.md`](docs/instalacao-manual-bootc-to-filesystem.md).
