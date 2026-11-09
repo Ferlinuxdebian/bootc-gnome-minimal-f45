@@ -28,11 +28,21 @@ gravável para que o `/etc/fstab` seja ajustado antes da finalização.
 
 ## Layout que será criado
 
-| Partição | Tamanho sugerido | Tipo | Ponto de montagem |
-| --- | --- | --- | --- |
-| `/dev/vdb1` | 512 MB – 1 GB | `vfat` (EFI System) | `/boot/efi` |
-| `/dev/vdb2` | 1 GB | `ext4` | `/boot` |
-| `/dev/vdb3` | restante do disco | `btrfs` | `/` (`subvol=root`) e `/var/home` (`subvol=home`) |
+| Ordem | Exemplo SATA/virtio | Exemplo NVMe | Tamanho sugerido | Tipo | Ponto de montagem |
+| --- | --- | --- | --- | --- | --- |
+| 1 | `/dev/sda1` | `/dev/nvme0n1p1` | 512 MB – 1 GB | `vfat` (EFI System) | `/boot/efi` |
+| 2 | `/dev/sda2` | `/dev/nvme0n1p2` | 1 GB | `ext4` | `/boot` |
+| 3 | `/dev/sda3` | `/dev/nvme0n1p3` | restante do disco | `btrfs` | `/` (`subvol=root`) e `/var/home` (`subvol=home`) |
+
+> [!IMPORTANT]
+> A numeração muda conforme o tipo de disco:
+>
+> - **SATA, USB e virtio** (`/dev/sda`, `/dev/vdb`): as partições são
+>   `/dev/sda1`, `/dev/sda2`, `/dev/sda3`.
+> - **NVMe** (`/dev/nvme0n1`) e **MMC/SD** (`/dev/mmcblk0`): existe um `p`
+>   antes do número: `/dev/nvme0n1p1`, `/dev/nvme0n1p2`, `/dev/nvme0n1p3`.
+>
+> Não remova o `p` em NVMe/MMC e não o adicione em SATA/USB/virtio.
 
 O `/var` não precisa de uma entrada própria: o bootc transforma `/var` em um
 bind do estado persistente da implantação automaticamente. No sistema
@@ -53,9 +63,10 @@ sudo dnf install -y podman bootc btrfs-progs dosfstools e2fsprogs util-linux
 ```
 
 > [!WARNING]
-> Confirme o nome do disco com `lsblk` antes de qualquer comando. Os exemplos
-> usam `/dev/vdb`; em um computador real ele pode ser `/dev/nvme0n1`,
-> `/dev/sda` etc. Um nome errado destrói o disco errado.
+> Confirme o nome do disco com `lsblk` antes de qualquer comando. Um nome
+> errado destrói o disco errado. Este guia usa `/dev/nvme0n1` e `/dev/sda` como
+> exemplos; no seu computador o disco pode ser `/dev/vdb`, `/dev/sdb`,
+> `/dev/mmcblk0` etc.
 
 Se a imagem for privada no GHCR, faça login no ambiente live:
 
@@ -65,27 +76,65 @@ sudo podman login ghcr.io
 
 ## Passo 1 — Identificar o disco e criar as partições
 
+Liste os discos e identifique o **disco inteiro** (sem número de partição):
+
 ```bash
 lsblk -o NAME,SIZE,TYPE,FSTYPE,MOUNTPOINTS
-sudo cfdisk /dev/vdb
 ```
 
-No `cfdisk`, crie uma tabela **GPT** e três partições:
+Exemplos de nome do disco:
+
+| Tipo de disco | Nome do disco | Nome das partições |
+| --- | --- | --- |
+| SATA, USB ou virtio | `/dev/sda`, `/dev/vdb` | `/dev/sda1`, `/dev/sda2`, `/dev/vdb1` etc. |
+| NVMe | `/dev/nvme0n1` | `/dev/nvme0n1p1`, `/dev/nvme0n1p2` etc. |
+| MMC/SD | `/dev/mmcblk0` | `/dev/mmcblk0p1`, `/dev/mmcblk0p2` etc. |
+
+Defina as variáveis de acordo com o seu disco. Para **NVMe**:
+
+```bash
+# Troque pelo disco NVMe detectado no lsblk
+DISK=/dev/nvme0n1
+ESP=${DISK}p1
+BOOT=${DISK}p2
+ROOT=${DISK}p3
+```
+
+Para **SATA, USB ou virtio**:
+
+```bash
+# Troque /dev/sda pelo seu disco (por exemplo, /dev/vdb)
+DISK=/dev/sda
+ESP=${DISK}1
+BOOT=${DISK}2
+ROOT=${DISK}3
+```
+
+> [!IMPORTANT]
+> Em NVMe e MMC existe um `p` antes do número da partição
+> (`/dev/nvme0n1p1`). Em SATA, USB e virtio não existe
+> (`/dev/sda1`). Use a variante que corresponde ao seu disco.
+
+Crie a tabela **GPT** e três partições:
+
+```bash
+sudo cfdisk "$DISK"
+```
+
+No `cfdisk`:
 
 1. **EFI System** — 512 MB a 1 GB.
 2. **Linux filesystem** — 1 GB, para o `/boot`.
 3. **Linux filesystem** — o restante do disco, para o BTRFS.
 
-Grave a tabela e saia do `cfdisk`. As partições serão algo como `/dev/vdb1`,
-`/dev/vdb2` e `/dev/vdb3`.
-
-Para evitar repetir o nome do disco, defina variáveis:
+Grave a tabela e saia do `cfdisk`. Confira se as variáveis apontam para as
+partições corretas:
 
 ```bash
-DISK=/dev/vdb
-ESP=${DISK}1
-BOOT=${DISK}2
-ROOT=${DISK}3
+echo "ESP=$ESP"
+echo "BOOT=$BOOT"
+echo "ROOT=$ROOT"
+lsblk -o NAME,SIZE,TYPE,FSTYPE "$DISK"
 ```
 
 ## Passo 2 — Formatar e criar os subvolumes BTRFS
