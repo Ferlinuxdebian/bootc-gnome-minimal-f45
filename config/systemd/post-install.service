@@ -1,21 +1,19 @@
 # /usr/lib/systemd/system/post-install.service
-# Instala os Flatpaks listados em /usr/share/flatpak/preinstall.d/ na instalação do usuário
+# Executado pelo post-install.timer 10s após o graphical.target.
+# Instala os Flatpaks listados em /usr/share/flatpak/preinstall.d/ na instalação do usuário.
 
 [Unit]
 Description=Instalação de Flatpaks iniciais (flatpak preinstall)
 Wants=NetworkManager-wait-online.service
-After=NetworkManager-wait-online.service
+After=graphical.target NetworkManager-wait-online.service
 ConditionPathExists=/home/fernando
 
 [Service]
 Type=oneshot
 User=fernando
-TimeoutStartSec=30s
+TimeoutStartSec=30min
 ExecStartPre=-+/usr/bin/env HOME=/root /usr/bin/flatpak remote-delete --system --force fedora
 ExecStartPre=/usr/bin/flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 ExecStart=/usr/bin/flatpak preinstall --user -y --noninteractive
 Restart=on-failure
 RestartSec=15
-
-[Install]
-WantedBy=graphical.target

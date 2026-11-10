@@ -43,7 +43,8 @@ Para preservar esse reaproveitamento, o `Containerfile` evita `dnf upgrade` comp
 | `.github/workflows` | Arquivo `.yml` responsável pelo build automático via GitHub Actions |
 | `config/nvidia/10-nvidia-args.toml` | Parâmetros para colocar o driver `nouveau` no blacklist |
 | `config/nvidia/nvidia_packages` | Pacotes do driver NVIDIA instalados na imagem final |
-| `config/systemd/post-install.service` | Serviço systemd que executa o pós-instalação no primeiro boot |
+| `config/systemd/post-install.service` | Instala os Flatpaks iniciais; executado pelo timer após o graphical.target |
+| `config/systemd/post-install.timer` | Dispara a instalação dos Flatpaks 10 segundos após o graphical.target |
 | `config/system/vconsole.conf` | Configuração do TTY para pt-BR |
 | `config/system/locale.conf` | Configuração de localidade do sistema para pt-BR |
 | `config/system/zram-generator.conf` | Configura o zram com tamanho igual ao da RAM, usando o algoritmo de compressão zstd |

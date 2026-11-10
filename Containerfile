@@ -81,6 +81,7 @@ RUN test -f /run/build-inputs/security/cosign.pub || \
     install -Dm644 /run/build-inputs/config/system/zram-generator.conf /etc/systemd/zram-generator.conf && \
     install -Dm644 /run/build-inputs/config/flatpak/flatpaks.preinstall /usr/share/flatpak/preinstall.d/flatpaks.preinstall && \
     install -Dm644 /run/build-inputs/config/systemd/post-install.service /usr/lib/systemd/system/post-install.service && \
+    install -Dm644 /run/build-inputs/config/systemd/post-install.timer /usr/lib/systemd/system/post-install.timer && \
     install -Dm644 /run/build-inputs/security/policy.json /etc/containers/policy.json && \
     install -Dm644 /run/build-inputs/security/registries.d/ghcr.yaml /etc/containers/registries.d/ghcr.yaml && \
     install -Dm644 /run/build-inputs/security/cosign.pub /etc/pki/containers/bootc-gnome.pub && \
@@ -88,7 +89,7 @@ RUN test -f /run/build-inputs/security/cosign.pub || \
     rm -rfv /opt /usr/local && \
     ln -vrs /var/opt /opt && \
     ln -vrs /var/usrlocal /usr/local && \
-    systemctl enable post-install.service spice-vdagentd.service && \
+    systemctl enable post-install.timer spice-vdagentd.service && \
     systemctl mask systemd-remount-fs.service akmods-keygen@akmods-keygen.service && \
     systemctl mask malcontent-timerd.service && \
     if command -v restorecon >/dev/null 2>&1; then restorecon -RFv /etc/containers /etc/pki/containers; fi && \

@@ -1,0 +1,12 @@
+# /usr/lib/systemd/system/post-install.timer
+# Dispara o post-install.service 10 segundos após o graphical.target.
+
+[Unit]
+Description=Agenda a instalação de Flatpaks 10s após o graphical.target
+
+[Timer]
+OnActiveSec=10s
+Unit=post-install.service
+
+[Install]
+WantedBy=graphical.target
