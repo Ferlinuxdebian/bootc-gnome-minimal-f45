@@ -19,7 +19,7 @@ Para preservar esse reaproveitamento, o `Containerfile` evita `dnf upgrade` comp
 .
 ├── Containerfile                 # build da imagem
 ├── config/
-│   ├── nvidia/                   # driver NVIDIA (kargs, modprobe, pacotes)
+│   ├── nvidia/                   # driver NVIDIA (kargs, pacotes)
 │   ├── packages/                 # listas de pacotes do sistema e do desktop
 │   ├── system/                   # locale, vconsole e zram
 │   ├── systemd/                  # unidades systemd
@@ -42,7 +42,6 @@ Para preservar esse reaproveitamento, o `Containerfile` evita `dnf upgrade` comp
 | `config/packages/pacotes_necessarios` | Lista de pacotes essenciais ao sistema, acrescida de pacotes de escolha pessoal |
 | `.github/workflows` | Arquivo `.yml` responsável pelo build automático via GitHub Actions |
 | `config/nvidia/10-nvidia-args.toml` | Parâmetros para colocar o driver `nouveau` no blacklist |
-| `config/nvidia/nvidia-power.conf` | Ajustes de gerenciamento de energia do driver NVIDIA |
 | `config/nvidia/nvidia_packages` | Pacotes do driver NVIDIA instalados na imagem final |
 | `config/systemd/post-install.service` | Serviço systemd que executa o pós-instalação no primeiro boot |
 | `config/system/vconsole.conf` | Configuração do TTY para pt-BR |

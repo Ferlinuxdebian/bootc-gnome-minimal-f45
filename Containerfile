@@ -76,7 +76,6 @@ COPY security/ /run/build-inputs/security/
 RUN test -f /run/build-inputs/security/cosign.pub || \
       { echo "ERRO: crie security/cosign.pub com 'cosign generate-key-pair'"; exit 1; } && \
     install -Dm644 /run/build-inputs/config/nvidia/10-nvidia-args.toml /usr/lib/bootc/kargs.d/10-nvidia-args.toml && \
-    install -Dm644 /run/build-inputs/config/nvidia/nvidia-power.conf /etc/modprobe.d/nvidia-power.conf && \
     install -Dm644 /run/build-inputs/config/system/locale.conf /etc/locale.conf && \
     install -Dm644 /run/build-inputs/config/system/vconsole.conf /etc/vconsole.conf && \
     install -Dm644 /run/build-inputs/config/system/zram-generator.conf /etc/systemd/zram-generator.conf && \
@@ -85,13 +84,12 @@ RUN test -f /run/build-inputs/security/cosign.pub || \
     install -Dm644 /run/build-inputs/security/policy.json /etc/containers/policy.json && \
     install -Dm644 /run/build-inputs/security/registries.d/ghcr.yaml /etc/containers/registries.d/ghcr.yaml && \
     install -Dm644 /run/build-inputs/security/cosign.pub /etc/pki/containers/bootc-gnome.pub && \
-    mkdir -vp /var/opt /var/usrlocal /etc/sysusers.d && \
+    mkdir -vp /var/opt /var/usrlocal && \
     rm -rfv /opt /usr/local && \
     ln -vrs /var/opt /opt && \
     ln -vrs /var/usrlocal /usr/local && \
     systemctl enable post-install.service spice-vdagentd.service && \
     systemctl mask systemd-remount-fs.service akmods-keygen@akmods-keygen.service && \
-    systemctl mask NetworkManager-wait-online.service && \
     systemctl mask malcontent-timerd.service && \
     if command -v restorecon >/dev/null 2>&1; then restorecon -RFv /etc/containers /etc/pki/containers; fi && \
     rm -rf /run/build-inputs /var/cache/* /var/lib/dnf/* /var/log/* /tmp/* /var/tmp/*
