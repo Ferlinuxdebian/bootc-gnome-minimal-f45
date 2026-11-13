@@ -116,3 +116,6 @@ Branch=stable
 
 [Flatpak Preinstall org.onlyoffice.desktopeditors]
 Branch=stable
+
+[Flatpak Preinstall app.devsuite.Ptyxis]
+Branch=stable
